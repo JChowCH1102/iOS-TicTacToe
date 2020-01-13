@@ -7,8 +7,11 @@
 //
 
 import UIKit
+import MultipeerConnectivity
 
-class ViewController: UIViewController, CheckWinPositionDelegate {
+class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDelegate, MCBrowserViewControllerDelegate {
+    
+    private let SERVICE_TYPE: String = "JChowCH-TicTacToe"
     
     @IBOutlet var baseUIView : UIView!
     weak var upperLine: UIView!
@@ -48,9 +51,114 @@ class ViewController: UIViewController, CheckWinPositionDelegate {
     var gameMode: GameMode?
     
     var turnCount = 1
+    var didThisIsServer: Bool?
     
     //MARK: - MPC
+    var peerID: MCPeerID!
+    var mcSession: MCSession!
+    var mcAdvertiserAssistant: MCAdvertiserAssistant!
+    var messageToSend: String!
     
+    func initMpc() {
+        peerID = MCPeerID(displayName: UIDevice.current.name)
+        mcSession = MCSession(peer: peerID, securityIdentity: nil, encryptionPreference: .required)
+        mcSession.delegate = self
+        updateLabel(upper: "wait connect")
+        showConnectionMenu()
+    }
+    
+    @objc func showConnectionMenu() {
+        let ac = UIAlertController(title: "Connection Menu", message: nil, preferredStyle: .actionSheet)
+        ac.addAction(UIAlertAction(title: "Host a session", style: .default, handler: hostSession))
+        ac.addAction(UIAlertAction(title: "Join a session", style: .default, handler: joinSession))
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(ac, animated: true)
+    }
+    
+    func hostSession(action: UIAlertAction) {
+        didThisIsServer = true
+        mcAdvertiserAssistant = MCAdvertiserAssistant(serviceType: "jchowch-ttt", discoveryInfo: nil, session: mcSession)
+        mcAdvertiserAssistant.start()
+    }
+    
+    func joinSession(action: UIAlertAction) {
+        didThisIsServer = false
+        let mcBrowser = MCBrowserViewController(serviceType: "jchowch-ttt", session: mcSession)
+        mcBrowser.delegate = self
+        present(mcBrowser, animated: true)
+    }
+    
+    func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
+        switch state {
+        case .connected:
+            print("Connected: \(peerID.displayName)")
+            //            readyToLoadBoard = true
+            DispatchQueue.main.async {
+                self.createBoard()
+            }
+        case .connecting:
+            print("Connecting: \(peerID.displayName)")
+        case .notConnected:
+            print("Not Connected: \(peerID.displayName)")
+        @unknown default:
+            print("fatal error")
+        }
+    }
+    
+    func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
+        DispatchQueue.main.async { [unowned self] in
+            // send chat message
+            let message = NSString(data: data as Data, encoding: String.Encoding.utf8.rawValue)! as String
+            print(message)
+            
+            for i in 1...9 {
+                if message == "\(i)" {
+                    self.mpcReceived(i)
+                }
+            }
+            
+            if message == "Your Turn First" {
+                self.isYourTurn.myTurn = true
+                self.updateLabel(upper: "Is Your Turn")
+            } else if message == "Not Your Turn First" {
+                self.isYourTurn.myTurn = false
+                self.updateLabel(bottom: "Is Your Turn")
+            } else if message == "Restart" {
+                self.restart()
+            }
+        }
+    }
+    
+    func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
+        
+    }
+    
+    func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
+        
+    }
+    
+    func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {
+        
+    }
+    
+    func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
+        dismiss(animated: true)
+    }
+    
+    func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
+        dismiss(animated: true)
+    }
+    
+    func mpcSend(_ message: String) {
+        messageToSend = "\(message)"
+        let message = messageToSend.data(using: String.Encoding.utf8, allowLossyConversion: false)
+        do {
+            try self.mcSession.send(message!, toPeers: self.mcSession.connectedPeers, with: .unreliable)
+        }
+        catch {
+            print("Error sending message")
+        }
+    }
     
     //MARK: - ViewController Life Cycle
     override func viewDidLoad() {
@@ -58,12 +166,19 @@ class ViewController: UIViewController, CheckWinPositionDelegate {
         bottomLabel.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
         bottomButton.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
         position.delegate = self
+        
+        if gameMode == GameMode.mpcPlay {
+            initMpc()
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         baseUIViewSize = Double(baseUIView.frame.width)
-        createBoard()
+        
+        if gameMode != GameMode.mpcPlay  {
+            createBoard()
+        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -94,7 +209,19 @@ class ViewController: UIViewController, CheckWinPositionDelegate {
     
     //MARK: - Game circle - 1. Start a new game
     func newGame() {
-        isYourTurn = Player()
+        
+        if gameMode == GameMode.mpcPlay {
+            if didThisIsServer ?? false {
+                isYourTurn = Player()
+                if isYourTurn.myTurn {
+                    mpcSend("Not Your Turn First")
+                } else {
+                    mpcSend("Your Turn First")
+                }
+            }
+        } else {
+            isYourTurn = Player()
+        }
         newTurn()
     }
     
@@ -103,29 +230,34 @@ class ViewController: UIViewController, CheckWinPositionDelegate {
         guard let game = gameMode else {
             return
         }
+        
+        switch game {
+        case .vsNpcEasy, .vsNpcHard:
+            npcTurn()
+        case .mpcPlay:
+            
+            break
+        case .twoPlayer:
+            break
+        }
+        
         if isYourTurn.myTurn {
             updateLabel(upper: "Is Your Turn")
         } else {
             updateLabel(bottom: "Is Your Turn")
-            
-            switch game {
-            case .vsNpcEasy, .vsNpcHard:
-                npcTurn()
-            case .mpcPlay:
-                //TODO: MPC
-                break
-            case .twoPlayer:
-                break
-            }
         }
     }
     //MARK: - Game circle - 3a. Player choose position
     @IBAction func buttonDidTapped(_ sender: UIButton) {
-        if (!isYourTurn.myTurn && gameMode == .twoPlayer) || (isYourTurn.myTurn && gameMode != .mpcPlay) {
+        if (!isYourTurn.myTurn && gameMode == .twoPlayer) || (isYourTurn.myTurn) {
             processThisTurn(button: sender)
-        } else if isYourTurn.myTurn && gameMode == .mpcPlay {
-            //TODO: mpc send
+            if gameMode == .mpcPlay {
+                mpcSend(String(sender.tag))
+            }
         }
+        //        else if isYourTurn.myTurn && gameMode == .mpcPlay {
+        //            //TODO: mpc send
+        //        }
     }
     
     //MARK: - Game circle - 3b. NPC choose position
@@ -165,6 +297,11 @@ class ViewController: UIViewController, CheckWinPositionDelegate {
     }
     
     //MARK: - Game circle - 3c. MPC return position
+    func mpcReceived(_ mpcPos: Int) {
+        if let targetButton = intToButton(mpcPos) {
+            processThisTurn(button: targetButton)
+        }
+    }
     
     //MARK: - Game circle - 4. Process
     func processThisTurn(button: UIButton) {
@@ -232,10 +369,10 @@ class ViewController: UIViewController, CheckWinPositionDelegate {
         case .col3:
             column3Line = addSubView(x: 5 * baseUIViewSize/6, y:0, width: 3, height: baseUIViewSize, color: color)
         case .lr:
-//            lrLine?.removeFromSuperview()
+            //            lrLine?.removeFromSuperview()
             lrLine = drawLDiagonalLineLR()
         case .rl:
-//            rlLine?.removeFromSuperview()
+            //            rlLine?.removeFromSuperview()
             rlLine = drawLDiagonalLineRL()
         }
     }
@@ -270,6 +407,7 @@ class ViewController: UIViewController, CheckWinPositionDelegate {
     
     //MARK: - Game circle - 7. Restart Game
     @IBAction func restartButtonDidTapped(_ sender: Any) {
+        mpcSend("Restart")
         restart()
     }
     
@@ -355,16 +493,25 @@ class ViewController: UIViewController, CheckWinPositionDelegate {
     }
     
     func updateLabel(bottom: String) {
-        upperLabel.isHidden = true
-        bottomLabel.isHidden = false
-        bottomLabel.text = bottom
+        if gameMode == GameMode.twoPlayer{
+            upperLabel.isHidden = true
+            bottomLabel.isHidden = false
+            bottomLabel.text = bottom
+        } else {
+            let newUpperText = "Wait the other Player"
+            updateLabel(upper: newUpperText)
+        }
     }
     
     func updateLabel(_ upper: String, _ bottom: String) {
-        upperLabel.isHidden = false
-        bottomLabel.isHidden = false
-        upperLabel.text = upper
-        bottomLabel.text = bottom
+        if gameMode == GameMode.twoPlayer {
+            upperLabel.isHidden = false
+            bottomLabel.isHidden = false
+            upperLabel.text = upper
+            bottomLabel.text = bottom
+        } else {
+            updateLabel(upper: upper)
+        }
     }
 }
 

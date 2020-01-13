@@ -15,14 +15,14 @@ class MainPageViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        updateMessageLabel(message: "Please select number of Player")
+        updateMessageLabel(message: "Please Game Mode")
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         playerStackView.isHidden = false
         npcModeStackView.isHidden = true
-        updateMessageLabel(message: "Please select number of Player")
+        updateMessageLabel(message: "Please Game Mode")
     }
     
     @IBAction func onePlayerButtonDidTapped(_ sender: UIButton) {
@@ -46,6 +46,8 @@ class MainPageViewController: UIViewController {
             nextPage(for: segue, gameMode: .vsNpcHard)
         } else if segue.identifier == "TwoPlayerIdentifier" {
             nextPage(for: segue, gameMode: .twoPlayer)
+        } else if segue.identifier == "MPCIdentifier" {
+            nextPage(for: segue, gameMode: .mpcPlay)
         }
     }
     

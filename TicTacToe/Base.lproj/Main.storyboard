@@ -35,20 +35,27 @@
                                 </subviews>
                             </stackView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="88" translatesAutoresizingMaskIntoConstraints="NO" id="u0X-DB-eR9">
-                                <rect key="frame" x="169.66666666666666" y="374" width="75" height="148"/>
+                                <rect key="frame" x="147.66666666666666" y="315" width="118.99999999999997" height="266"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="D8H-7D-waa">
-                                        <rect key="frame" x="0.0" y="0.0" width="75" height="30"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="119" height="30"/>
                                         <state key="normal" title="One Player"/>
                                         <connections>
                                             <action selector="onePlayerButtonDidTapped:" destination="MWi-P7-51i" eventType="touchUpInside" id="DMk-jZ-oDw"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qqx-UN-FWo">
-                                        <rect key="frame" x="0.0" y="118" width="75" height="30"/>
+                                        <rect key="frame" x="0.0" y="118" width="119" height="30"/>
                                         <state key="normal" title="Two Player"/>
                                         <connections>
                                             <segue destination="BYZ-38-t0r" kind="show" identifier="TwoPlayerIdentifier" id="8eG-jd-pz6"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pNE-n5-rZe">
+                                        <rect key="frame" x="0.0" y="236" width="119" height="30"/>
+                                        <state key="normal" title="Play With NearBy"/>
+                                        <connections>
+                                            <segue destination="BYZ-38-t0r" kind="show" identifier="MPCIdentifier" id="g1u-fU-xqo"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -391,6 +398,6 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="UY0-oO-8Wl"/>
+        <segue reference="g1u-fU-xqo"/>
     </inferredMetricsTieBreakers>
 </document>
