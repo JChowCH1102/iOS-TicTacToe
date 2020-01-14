@@ -11,7 +11,7 @@ import MultipeerConnectivity
 
 class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDelegate, MCBrowserViewControllerDelegate {
     
-    private let SERVICE_TYPE: String = "JChowCH-TicTacToe"
+    private let SERVICE_TYPE: String = "jchowch-ttt"
     
     @IBOutlet var baseUIView : UIView!
     weak var upperLine: UIView!
@@ -77,13 +77,13 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
     
     func hostSession(action: UIAlertAction) {
         didThisIsServer = true
-        mcAdvertiserAssistant = MCAdvertiserAssistant(serviceType: "jchowch-ttt", discoveryInfo: nil, session: mcSession)
+        mcAdvertiserAssistant = MCAdvertiserAssistant(serviceType: SERVICE_TYPE, discoveryInfo: nil, session: mcSession)
         mcAdvertiserAssistant.start()
     }
     
     func joinSession(action: UIAlertAction) {
         didThisIsServer = false
-        let mcBrowser = MCBrowserViewController(serviceType: "jchowch-ttt", session: mcSession)
+        let mcBrowser = MCBrowserViewController(serviceType: SERVICE_TYPE, session: mcSession)
         mcBrowser.delegate = self
         present(mcBrowser, animated: true)
     }
@@ -107,7 +107,6 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
     
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         DispatchQueue.main.async { [unowned self] in
-            // send chat message
             let message = NSString(data: data as Data, encoding: String.Encoding.utf8.rawValue)! as String
             print(message)
             
@@ -268,31 +267,6 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
             processThisTurn(button: targetButton)
         } else if gameMode == .vsNpcHard, let targetButton = intToButton(npc.choose()) {
             processThisTurn(button: targetButton)
-        }
-    }
-    
-    func intToButton(_ int: Int) -> UIButton? {
-        switch int {
-        case 1:
-            return m11
-        case 2:
-            return m12
-        case 3:
-            return m13
-        case 4:
-            return m21
-        case 5:
-            return m22
-        case 6:
-            return m23
-        case 7:
-            return m31
-        case 8:
-            return m32
-        case 9:
-            return m33
-        default:
-            return nil
         }
     }
     
@@ -469,6 +443,31 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
         return newUIView
     }
     
+    func intToButton(_ int: Int) -> UIButton? {
+        switch int {
+        case 1:
+            return m11
+        case 2:
+            return m12
+        case 3:
+            return m13
+        case 4:
+            return m21
+        case 5:
+            return m22
+        case 6:
+            return m23
+        case 7:
+            return m31
+        case 8:
+            return m32
+        case 9:
+            return m33
+        default:
+            return nil
+        }
+    }
+    
     func boardButtonIsEnable(_ bool: Bool) {
         m11.isEnabled = bool
         m12.isEnabled = bool
@@ -483,7 +482,9 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
     
     func restartButtonIsHidden(_ bool: Bool) {
         upperButton.isHidden = bool
-        bottomButton.isHidden = bool
+        if gameMode == GameMode.twoPlayer {
+            bottomButton.isHidden = bool
+        }
     }
     
     func updateLabel(upper: String) {
