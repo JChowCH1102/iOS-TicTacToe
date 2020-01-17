@@ -9,7 +9,7 @@
 import UIKit
 import MultipeerConnectivity
 
-class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDelegate, MCBrowserViewControllerDelegate {
+class ViewController: UIViewController, MCSessionDelegate, MCBrowserViewControllerDelegate {
     
     private let SERVICE_TYPE: String = "jchowch-ttt"
     
@@ -49,6 +49,7 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
     var position = Position()
     var isYourTurn = Player()
     var gameMode: GameMode?
+//    var transmissionType: TransmissionType?
     
     var turnCount = 1
     var didThisIsServer: Bool?
@@ -110,21 +111,40 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
             let message = NSString(data: data as Data, encoding: String.Encoding.utf8.rawValue)! as String
             print(message)
             
-            for i in 1...9 {
-                if message == "\(i)" {
-                    self.mpcReceived(i)
-                }
-            }
+//            for i in 1...9 {
+//                if message == "\(i)" {
+//                    self.mpcReceived(i)
+//                }
+//            }
             
-            if message == "Your Turn First" {
+            let type = TransmissionType(rawValue: message)
+            switch type {
+            case .isYourStart:
                 self.isYourTurn.myTurn = true
                 self.updateLabel(upper: "Is Your Turn")
-            } else if message == "Not Your Turn First" {
+            case .isNotYourStart:
                 self.isYourTurn.myTurn = false
                 self.updateLabel(bottom: "Is Your Turn")
-            } else if message == "Restart" {
+            case .isRestarted:
                 self.restart()
+            case .none:
+                for i in 1...9 {
+                    if message == "\(i)" {
+                        self.mpcReceived(i)
+                    }
+                }
             }
+//
+//            if message == "IS_YOUR_TURN" {
+////            if message == "Your Turn First" {
+//                self.isYourTurn.myTurn = true
+//                self.updateLabel(upper: "Is Your Turn")
+//            } else if message == "Not Your Turn First" {
+//                self.isYourTurn.myTurn = false
+//                self.updateLabel(bottom: "Is Your Turn")
+//            } else if message == "Restart" {
+//                self.restart()
+//            }
         }
     }
     
@@ -148,8 +168,8 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
         dismiss(animated: true)
     }
     
-    func mpcSend(_ message: String) {
-        messageToSend = "\(message)"
+    func mpcSend(_ message: TransmissionType) {
+        messageToSend = message.rawValue
         let message = messageToSend.data(using: String.Encoding.utf8, allowLossyConversion: false)
         do {
             try self.mcSession.send(message!, toPeers: self.mcSession.connectedPeers, with: .unreliable)
@@ -158,6 +178,17 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
             print("Error sending message")
         }
     }
+    
+    func mpcSend(_ message: String) {
+         messageToSend = message
+         let message = messageToSend.data(using: String.Encoding.utf8, allowLossyConversion: false)
+         do {
+             try self.mcSession.send(message!, toPeers: self.mcSession.connectedPeers, with: .unreliable)
+         }
+         catch {
+             print("Error sending message")
+         }
+     }
     
     //MARK: - ViewController Life Cycle
     override func viewDidLoad() {
@@ -213,9 +244,9 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
             if didThisIsServer ?? false {
                 isYourTurn = Player()
                 if isYourTurn.myTurn {
-                    mpcSend("Not Your Turn First")
+                    mpcSend(TransmissionType.isNotYourStart)
                 } else {
-                    mpcSend("Your Turn First")
+                    mpcSend(TransmissionType.isYourStart)
                 }
             }
         } else {
@@ -230,20 +261,19 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
             return
         }
         
-        switch game {
-        case .vsNpcEasy, .vsNpcHard:
-            npcTurn()
-        case .mpcPlay:
-            
-            break
-        case .twoPlayer:
-            break
-        }
-        
         if isYourTurn.myTurn {
             updateLabel(upper: "Is Your Turn")
         } else {
             updateLabel(bottom: "Is Your Turn")
+            
+            switch game {
+            case .vsNpcEasy, .vsNpcHard:
+                npcTurn()
+            case .mpcPlay:
+                break
+            case .twoPlayer:
+                break
+            }
         }
     }
     //MARK: - Game circle - 3a. Player choose position
@@ -254,9 +284,6 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
                 mpcSend(String(sender.tag))
             }
         }
-        //        else if isYourTurn.myTurn && gameMode == .mpcPlay {
-        //            //TODO: mpc send
-        //        }
     }
     
     //MARK: - Game circle - 3b. NPC choose position
@@ -267,6 +294,9 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
             processThisTurn(button: targetButton)
         } else if gameMode == .vsNpcHard, let targetButton = intToButton(npc.choose()) {
             processThisTurn(button: targetButton)
+        }
+        else {
+            print("impposible")
         }
     }
     
@@ -327,29 +357,7 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
         restartButtonIsHidden(false)
     }
     
-    func checkWinPosition(_ winPos: Position.WinPosition) {
-        color = UIColor.red
-        switch winPos {
-        case .row1:
-            row1Line = addSubView(x: 0, y: baseUIViewSize/6, width: baseUIViewSize, height: 3, color: color)
-        case .row2:
-            row2Line = addSubView(x: 0, y: baseUIViewSize/2, width: baseUIViewSize, height: 3, color: color)
-        case .row3:
-            row3Line = addSubView(x: 0, y: 5 * baseUIViewSize/6, width: baseUIViewSize, height: 3, color: color)
-        case .col1:
-            column1Line = addSubView(x: baseUIViewSize/6, y: 0, width: 3, height: baseUIViewSize, color: color)
-        case .col2:
-            column2Line = addSubView(x: baseUIViewSize/2, y: 0, width: 3, height: baseUIViewSize, color: color)
-        case .col3:
-            column3Line = addSubView(x: 5 * baseUIViewSize/6, y:0, width: 3, height: baseUIViewSize, color: color)
-        case .lr:
-            //            lrLine?.removeFromSuperview()
-            lrLine = drawLDiagonalLineLR()
-        case .rl:
-            //            rlLine?.removeFromSuperview()
-            rlLine = drawLDiagonalLineRL()
-        }
-    }
+    
     
     func drawLDiagonalLineLR() -> UIView {
         let path = UIBezierPath()
@@ -381,7 +389,9 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
     
     //MARK: - Game circle - 7. Restart Game
     @IBAction func restartButtonDidTapped(_ sender: Any) {
-        mpcSend("Restart")
+        if gameMode == GameMode.mpcPlay {
+            mpcSend(TransmissionType.isRestarted)
+        }
         restart()
     }
     
@@ -484,6 +494,8 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
         upperButton.isHidden = bool
         if gameMode == GameMode.twoPlayer {
             bottomButton.isHidden = bool
+        } else {
+            bottomButton.isHidden = true
         }
     }
     
@@ -516,5 +528,29 @@ class ViewController: UIViewController, CheckWinPositionDelegate, MCSessionDeleg
     }
 }
 
-
+extension ViewController: CheckWinPositionDelegate {
+    func checkWinPosition(_ winPos: Position.WinPosition) {
+        color = UIColor.red
+        switch winPos {
+        case .row1:
+            row1Line = addSubView(x: 0, y: baseUIViewSize/6, width: baseUIViewSize, height: 3, color: color)
+        case .row2:
+            row2Line = addSubView(x: 0, y: baseUIViewSize/2, width: baseUIViewSize, height: 3, color: color)
+        case .row3:
+            row3Line = addSubView(x: 0, y: 5 * baseUIViewSize/6, width: baseUIViewSize, height: 3, color: color)
+        case .col1:
+            column1Line = addSubView(x: baseUIViewSize/6, y: 0, width: 3, height: baseUIViewSize, color: color)
+        case .col2:
+            column2Line = addSubView(x: baseUIViewSize/2, y: 0, width: 3, height: baseUIViewSize, color: color)
+        case .col3:
+            column3Line = addSubView(x: 5 * baseUIViewSize/6, y:0, width: 3, height: baseUIViewSize, color: color)
+        case .lr:
+            //            lrLine?.removeFromSuperview()
+            lrLine = drawLDiagonalLineLR()
+        case .rl:
+            //            rlLine?.removeFromSuperview()
+            rlLine = drawLDiagonalLineRL()
+        }
+    }
+}
 

@@ -8,6 +8,7 @@
 
 import Foundation
 
+//4 different GameMode in this TicTacToe
 enum GameMode {
     case vsNpcEasy
     case vsNpcHard

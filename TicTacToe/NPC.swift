@@ -32,6 +32,8 @@ class NPC {
             return 1
         } else if turnCount == 2 || turnCount == 3 {
             return turnTwoOrThreeChoose()
+        } else if turnCount == 9 {
+            return random()
         } else {
             return analysis()
         }

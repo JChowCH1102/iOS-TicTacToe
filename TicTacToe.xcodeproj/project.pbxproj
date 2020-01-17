@@ -13,6 +13,7 @@
 		F62F4C8A23B5365000D03EE9 /* CheckWinPositionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F62F4C8923B5365000D03EE9 /* CheckWinPositionDelegate.swift */; };
 		F62F4C8D23B5643A00D03EE9 /* NPC.swift in Sources */ = {isa = PBXBuildFile; fileRef = F62F4C8C23B5643A00D03EE9 /* NPC.swift */; };
 		F63803A423B984BB00F151AA /* MainPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F63803A323B984BB00F151AA /* MainPageViewController.swift */; };
+		F69C837723CE0F5D00429657 /* TransmissionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = F69C837623CE0F5C00429657 /* TransmissionType.swift */; };
 		F6D5C14C23AA06DF00B46F9B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6D5C14B23AA06DF00B46F9B /* AppDelegate.swift */; };
 		F6D5C15023AA06DF00B46F9B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6D5C14F23AA06DF00B46F9B /* ViewController.swift */; };
 		F6D5C15323AA06DF00B46F9B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F6D5C15123AA06DF00B46F9B /* Main.storyboard */; };
@@ -27,6 +28,7 @@
 		F62F4C8923B5365000D03EE9 /* CheckWinPositionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckWinPositionDelegate.swift; sourceTree = "<group>"; };
 		F62F4C8C23B5643A00D03EE9 /* NPC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NPC.swift; sourceTree = "<group>"; };
 		F63803A323B984BB00F151AA /* MainPageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainPageViewController.swift; sourceTree = "<group>"; };
+		F69C837623CE0F5C00429657 /* TransmissionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransmissionType.swift; sourceTree = "<group>"; };
 		F6D5C14823AA06DF00B46F9B /* TicTacToe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TicTacToe.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6D5C14B23AA06DF00B46F9B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F6D5C14F23AA06DF00B46F9B /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -86,6 +88,7 @@
 				F62F4C8723B3D91F00D03EE9 /* GameMode.swift */,
 				F62F4C8923B5365000D03EE9 /* CheckWinPositionDelegate.swift */,
 				F62F4C8C23B5643A00D03EE9 /* NPC.swift */,
+				F69C837623CE0F5C00429657 /* TransmissionType.swift */,
 			);
 			path = TicTacToe;
 			sourceTree = "<group>";
@@ -162,6 +165,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F6D5C15023AA06DF00B46F9B /* ViewController.swift in Sources */,
+				F69C837723CE0F5D00429657 /* TransmissionType.swift in Sources */,
 				F6D5C14C23AA06DF00B46F9B /* AppDelegate.swift in Sources */,
 				F62F4C8823B3D91F00D03EE9 /* GameMode.swift in Sources */,
 				F62F4C8423B3508100D03EE9 /* Position.swift in Sources */,
